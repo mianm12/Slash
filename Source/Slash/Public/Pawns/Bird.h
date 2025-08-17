@@ -6,6 +6,10 @@
 #include "GameFramework/Pawn.h"
 #include "Bird.generated.h"
 
+class UFloatingPawnMovement;
+class UCapsuleComponent;
+class USkeletalMeshComponent;
+
 UCLASS()
 class SLASH_API ABird : public APawn
 {
@@ -23,5 +27,16 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
+
+	void MoveForward(float Value);
+
+private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	UCapsuleComponent* Capsule;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* BirdMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	UFloatingPawnMovement* FloatingMovement;
 };
