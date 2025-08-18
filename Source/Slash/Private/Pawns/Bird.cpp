@@ -9,11 +9,13 @@
 #include "InputActionValue.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 
 // Sets default values
 ABird::ABird()
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
@@ -31,21 +33,25 @@ ABird::ABird()
 	// Create and configure the skeletal mesh component
 	BirdMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BirdMesh"));
 	BirdMesh->SetupAttachment(Capsule);
-	
+
 	// Create and configure the floating pawn movement component
 	FloatingMovement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("FloatingMovement"));
 	FloatingMovement->UpdatedComponent = Capsule;
+
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	CameraBoom->SetupAttachment(Capsule);
+	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance
+	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
+
+	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom
+	FollowCamera->bUsePawnControlRotation = false; // Don't rotate the camera with the controller, use the boom's rotation instead
 }
 
 // Called when the game starts or when spawned
 void ABird::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (GetController() != nullptr)
-	{
-		AddControllerPitchInput(80.f);
-	}
 }
 
 void ABird::Move(const FInputActionValue& Value)
@@ -55,7 +61,7 @@ void ABird::Move(const FInputActionValue& Value)
 		const FVector2D MovementVector = Value.Get<FVector2D>();
 		const float Forward = MovementVector.Y;
 		const float Right = MovementVector.X;
-		
+
 		// find out which way is forward
 		const FRotator Rotation = GetController()->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -87,29 +93,27 @@ void ABird::Look(const FInputActionValue& Value)
 
 void ABird::JumpStart(const FInputActionValue& Value)
 {
-	
 }
 
 void ABird::JumpEnd(const FInputActionValue& Value)
 {
-	
 }
 
 // Called every frame
 void ABird::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 // Called to bind functionality to input
 void ABird::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	
+
 	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<
+			UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
@@ -123,4 +127,3 @@ void ABird::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ABird::JumpEnd);
 	}
 }
-
