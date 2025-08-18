@@ -20,6 +20,15 @@ ABird::ABird()
 
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 
+	// Don't rotate when the controller rotates. Let that just affect the camera.
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
+	
+	// Set the pawn's rotation settings
+	bOrientRotationToMovement = true;
+	OrientationSpeed = 1000.0f; // Speed at which the pawn orients to movement direction
+
 	// Create and configure the capsule component
 	Capsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
 	Capsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -39,7 +48,7 @@ ABird::ABird()
 	FloatingMovement->UpdatedComponent = Capsule;
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(Capsule);
+	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 
@@ -52,6 +61,38 @@ ABird::ABird()
 void ABird::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+/**
+ * Orient the pawn to the direction of movement.
+ * This function smoothly interpolates the pawn's rotation towards the direction of its velocity.
+ * @param DeltaTime The time since the last frame, used for smooth interpolation.
+ */
+void ABird::OrientToMovement(const float DeltaTime)
+{
+	if (const FVector Velocity = GetVelocity(); Velocity.SizeSquared() > 0.0f)
+	{
+		const FRotator TargetRotation = Velocity.Rotation();
+
+		const FRotator CurrentRotation = GetActorRotation();
+
+		// Smoothly interpolate the rotation towards the target rotation
+		FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, OrientationSpeed / 100.0f);
+
+		NewRotation.Pitch = 0.0f; // Keep the pitch level
+		
+		DrawDebugLine(
+			GetWorld(),
+			GetActorLocation(),
+			GetActorLocation() + Velocity,
+			FColor::Green,
+			false,
+			-1.0f,
+			0,
+			2.0f);
+
+		SetActorRotation(NewRotation);
+	}
 }
 
 void ABird::Move(const FInputActionValue& Value)
@@ -67,7 +108,7 @@ void ABird::Move(const FInputActionValue& Value)
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
 		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector ForwardDirection = Rotation.Vector(); // Use the controller's viewport vector
 
 		// get right vector 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
@@ -91,18 +132,15 @@ void ABird::Look(const FInputActionValue& Value)
 	}
 }
 
-void ABird::JumpStart(const FInputActionValue& Value)
-{
-}
-
-void ABird::JumpEnd(const FInputActionValue& Value)
-{
-}
-
 // Called every frame
 void ABird::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	if (bOrientRotationToMovement)
+	{
+		OrientToMovement(DeltaTime);
+	}
 }
 
 // Called to bind functionality to input
@@ -123,7 +161,5 @@ void ABird::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	{
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ABird::Move);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ABird::Look);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ABird::JumpStart);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ABird::JumpEnd);
 	}
 }

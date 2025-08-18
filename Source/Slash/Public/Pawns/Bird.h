@@ -38,13 +38,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Input")
 	void Look(const FInputActionValue& Value);
 
-	// JumpStart action handlers
-	UFUNCTION(BlueprintCallable, Category="Input")
-	void JumpStart(const FInputActionValue& Value);
+	/** Returns CameraBoom subobject **/
+	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
-	// JumpEnd action handlers
-	UFUNCTION(BlueprintCallable, Category="Input")
-	void JumpEnd(const FInputActionValue& Value);
+	/** Returns FollowCamera subobject **/
+	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	// Orient the pawn to movement direction
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Movement")
+	bool bOrientRotationToMovement = true;
+
+	// Speed at which the pawn orients to movement direction
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Movement")
+	float OrientationSpeed = 1000.0f;
 
 protected:
 	// Called when the game starts or when spawned
@@ -58,9 +64,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* LookAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
-	UInputAction* JumpAction;
+	
+	void OrientToMovement(const float DeltaTime);
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
