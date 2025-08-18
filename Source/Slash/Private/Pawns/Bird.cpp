@@ -6,6 +6,9 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
+#include "InputActionValue.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 
 // Sets default values
 ABird::ABird()
@@ -13,6 +16,9 @@ ABird::ABird()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	AutoPossessPlayer = EAutoReceiveInput::Player0;
+
+	// Create and configure the capsule component
 	Capsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
 	Capsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	Capsule->SetCollisionObjectType(ECC_Pawn);
@@ -22,11 +28,11 @@ ABird::ABird()
 	Capsule->SetCapsuleRadius(15.f);
 	SetRootComponent(Capsule);
 
+	// Create and configure the skeletal mesh component
 	BirdMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BirdMesh"));
 	BirdMesh->SetupAttachment(Capsule);
-
-	AutoPossessPlayer = EAutoReceiveInput::Player0;
-
+	
+	// Create and configure the floating pawn movement component
 	FloatingMovement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("FloatingMovement"));
 	FloatingMovement->UpdatedComponent = Capsule;
 }
@@ -35,17 +41,58 @@ ABird::ABird()
 void ABird::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (GetController() != nullptr)
+	{
+		AddControllerPitchInput(80.f);
+	}
+}
+
+void ABird::Move(const FInputActionValue& Value)
+{
+	if (GetController() != nullptr)
+	{
+		const FVector2D MovementVector = Value.Get<FVector2D>();
+		const float Forward = MovementVector.Y;
+		const float Right = MovementVector.X;
+		
+		// find out which way is forward
+		const FRotator Rotation = GetController()->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		// get forward vector
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+		// get right vector 
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		// add movement 
+		AddMovementInput(ForwardDirection, Forward);
+		AddMovementInput(RightDirection, Right);
+	}
+}
+
+void ABird::Look(const FInputActionValue& Value)
+{
+	if (GetController() != nullptr)
+	{
+		const FVector2D LookAxisVector = Value.Get<FVector2D>();
+		const float Yaw = LookAxisVector.X;
+		const float Pitch = LookAxisVector.Y;
+
+		AddControllerYawInput(Yaw);
+		AddControllerPitchInput(Pitch);
+	}
+}
+
+void ABird::JumpStart(const FInputActionValue& Value)
+{
 	
 }
 
-void ABird::MoveForward(float Value)
+void ABird::JumpEnd(const FInputActionValue& Value)
 {
-	if (Controller && Value != 0.0f)
-	{
-		UE_LOG(LogTemp, Display, TEXT("MoveForward called with value: %f"), Value);
-		FVector Direction = GetActorForwardVector();
-		AddMovementInput(Direction, Value);
-	}
+	
 }
 
 // Called every frame
@@ -59,7 +106,21 @@ void ABird::Tick(float DeltaTime)
 void ABird::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		}
+	}
 
-	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &ABird::MoveForward);
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ABird::Move);
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ABird::Look);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ABird::JumpStart);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ABird::JumpEnd);
+	}
 }
 

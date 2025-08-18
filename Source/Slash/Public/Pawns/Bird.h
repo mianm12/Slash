@@ -9,6 +9,9 @@
 class UFloatingPawnMovement;
 class UCapsuleComponent;
 class USkeletalMeshComponent;
+class UInputAction;
+class UInputMappingContext;
+struct FInputActionValue;
 
 UCLASS()
 class SLASH_API ABird : public APawn
@@ -27,16 +30,34 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputMappingContext* DefaultMappingContext;
 
-	void MoveForward(float Value);
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* MoveAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* LookAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* JumpAction;
+
+	void Move(const FInputActionValue& Value);
+
+	void Look(const FInputActionValue& Value);
+
+	void JumpStart(const FInputActionValue& Value);
+
+	void JumpEnd(const FInputActionValue& Value);
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
-	UCapsuleComponent* Capsule;
+	UCapsuleComponent* Capsule = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
-	USkeletalMeshComponent* BirdMesh;
+	USkeletalMeshComponent* BirdMesh = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
-	UFloatingPawnMovement* FloatingMovement;
+	UFloatingPawnMovement* FloatingMovement = nullptr;
 };
