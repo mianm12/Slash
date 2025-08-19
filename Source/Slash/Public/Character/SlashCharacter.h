@@ -6,6 +6,12 @@
 #include "GameFramework/Character.h"
 #include "SlashCharacter.generated.h"
 
+class UCameraComponent;
+class USpringArmComponent;
+struct FInputActionValue;
+class UInputAction;
+class UInputMappingContext;
+
 UCLASS()
 class SLASH_API ASlashCharacter : public ACharacter
 {
@@ -20,11 +26,44 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	// JumpStart action handlers
+	UFUNCTION(BlueprintCallable, Category="Input")
+	void JumpStart(const FInputActionValue& Value);
+
+	// JumpEnd action handlers
+	UFUNCTION(BlueprintCallable, Category="Input")
+	void JumpEnd(const FInputActionValue& Value);
+
+	// Look action handlers
+	UFUNCTION(BlueprintCallable, Category="Input")
+	void Look(const FInputActionValue& Value);
+
+	// Move action handlers
+	UFUNCTION(BlueprintCallable, Category="Input")
+	void Move(const FInputActionValue& Value);
 	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	TObjectPtr<UInputMappingContext> DefaultMappingContext;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	TObjectPtr<UInputAction> JumpAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	TObjectPtr<UInputAction> LookAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	TObjectPtr<UInputAction> MoveAction;
+
 private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta=(AllowPrivateAccess = "true"))
+	TObjectPtr<USpringArmComponent> CameraBoom = nullptr;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta=(AllowPrivateAccess = "true"))
+	TObjectPtr<UCameraComponent> FollowCamera = nullptr;
 
 };
