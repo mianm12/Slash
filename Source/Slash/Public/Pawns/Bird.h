@@ -57,29 +57,29 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
-	UInputMappingContext* DefaultMappingContext;
+	TObjectPtr<UInputMappingContext> DefaultMappingContext;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
-	UInputAction* MoveAction;
+	TObjectPtr<UInputAction> MoveAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
-	UInputAction* LookAction;
+	TObjectPtr<UInputAction> LookAction;
 	
 	void OrientToMovement(const float DeltaTime);
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
-	UCapsuleComponent* Capsule = nullptr;
+	TObjectPtr<UCapsuleComponent> Capsule = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
-	USkeletalMeshComponent* BirdMesh = nullptr;
+	TObjectPtr<USkeletalMeshComponent> BirdMesh = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
-	UFloatingPawnMovement* FloatingMovement = nullptr;
+	TObjectPtr<UFloatingPawnMovement> FloatingMovement = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta=(AllowPrivateAccess = "true"))
-	USpringArmComponent* CameraBoom = nullptr;
+	TObjectPtr<USpringArmComponent> CameraBoom = nullptr;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta=(AllowPrivateAccess = "true"))
-	UCameraComponent* FollowCamera = nullptr;
+	TObjectPtr<UCameraComponent> FollowCamera = nullptr;
 };
