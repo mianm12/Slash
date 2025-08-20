@@ -3,11 +3,11 @@
 
 #include "Character/SlashCharacter.h"
 
+#include "GroomComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Camera/CameraComponent.h"
-#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
@@ -36,13 +36,21 @@ ASlashCharacter::ASlashCharacter()
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 	
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
+	CameraBoom->SetupAttachment(GetRootComponent());
 	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom
 	FollowCamera->bUsePawnControlRotation = false; // Don't rotate the camera with the controller, use the boom's rotation instead
+
+	Hair = CreateDefaultSubobject<UGroomComponent>(TEXT("Hair"));
+	Hair->SetupAttachment(GetMesh());
+	Hair->AttachmentName = FString("head");
+
+	Eyebrows = CreateDefaultSubobject<UGroomComponent>(TEXT("Eyebrows"));
+	Eyebrows->SetupAttachment(GetMesh());
+	Eyebrows->AttachmentName = FString("head");
 }
 
 // Called when the game starts or when spawned

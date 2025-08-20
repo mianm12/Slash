@@ -6,11 +6,13 @@
 #include "GameFramework/Character.h"
 #include "SlashCharacter.generated.h"
 
+class UGroomComponent;
 class UCameraComponent;
 class USpringArmComponent;
-struct FInputActionValue;
 class UInputAction;
 class UInputMappingContext;
+
+struct FInputActionValue;
 
 UCLASS()
 class SLASH_API ASlashCharacter : public ACharacter
@@ -65,5 +67,11 @@ private:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> FollowCamera = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Hair", meta=(AllowPrivateAccess = "true"))
+	UGroomComponent* Hair = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Hair", meta=(AllowPrivateAccess = "true"))
+	UGroomComponent* Eyebrows = nullptr;
 
 };
