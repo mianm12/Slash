@@ -31,10 +31,7 @@ ABird::ABird()
 
 	// Create and configure the capsule component
 	Capsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
-	Capsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	Capsule->SetCollisionObjectType(ECC_Pawn);
-	Capsule->SetCollisionResponseToAllChannels(ECR_Block);
-	Capsule->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+	Capsule->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
 	Capsule->SetCapsuleHalfHeight(20.f);
 	Capsule->SetCapsuleRadius(15.f);
 	SetRootComponent(Capsule);
