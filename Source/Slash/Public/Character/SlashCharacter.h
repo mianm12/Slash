@@ -69,9 +69,9 @@ private:
 	TObjectPtr<UCameraComponent> FollowCamera = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Hair", meta=(AllowPrivateAccess = "true"))
-	UGroomComponent* Hair = nullptr;
+	TObjectPtr<UGroomComponent> Hair = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Hair", meta=(AllowPrivateAccess = "true"))
-	UGroomComponent* Eyebrows = nullptr;
+	TObjectPtr<UGroomComponent> Eyebrows = nullptr;
 
 };

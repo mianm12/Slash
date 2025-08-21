@@ -21,10 +21,10 @@ public:
 	virtual void NativeUpdateAnimation(float DeltaTimeRPM) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	ASlashCharacter* SlashCharacter = nullptr;
+	TObjectPtr<ASlashCharacter> SlashCharacter = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UCharacterMovementComponent* MovementComponent = nullptr;
+	TObjectPtr<UCharacterMovementComponent> MovementComponent = nullptr;
 
 	/// @brief The horizontal speed squared of the character's movement.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Movement")
