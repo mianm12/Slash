@@ -24,6 +24,7 @@ void AItem::BeginPlay()
 	Super::BeginPlay();
 
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnSphereOverlapBegin);
+	Sphere->OnComponentEndOverlap.AddDynamic(this, &AItem::OnSphereOverlapEnd);
 }
 
 float AItem::TransformedSin() const
@@ -42,7 +43,17 @@ void AItem::OnSphereOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActo
 	if (OtherActor && OtherActor != this && OtherComp)
 	{
 		// Handle overlap logic here, e.g., pick up the item
-		UE_LOG(LogTemp, Warning, TEXT("Item overlapped with %s"), *OtherActor->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("Item overlapped beginning with %s"), *OtherActor->GetName());
+	}
+}
+
+void AItem::OnSphereOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor && OtherActor != this && OtherComp)
+	{
+		// Handle overlap logic here, e.g., pick up the item
+		UE_LOG(LogTemp, Warning, TEXT("Item overlapped ended with %s"), *OtherActor->GetName());
 	}
 }
 
