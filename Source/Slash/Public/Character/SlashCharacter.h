@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CharacterTypes.h"
 #include "GameFramework/Character.h"
 #include "Items/Interfaces/Interactor.h"
 #include "SlashCharacter.generated.h"
@@ -52,6 +53,8 @@ public:
 	void Interact(const FInputActionValue& Value);
 	
 	FORCEINLINE virtual TScriptInterface<IInteractable> GetFocusedInteractable() const override { return FocusedInteractable; };
+
+	FORCEINLINE ECharacterState GetCharacterState() const { return CharacterState; }
 	
 protected:
 	// Called when the game starts or when spawned
@@ -96,4 +99,7 @@ private:
 	// Currently focused interactable object
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
 	TScriptInterface<IInteractable> FocusedInteractable;
+
+	// Current character state
+	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
 };

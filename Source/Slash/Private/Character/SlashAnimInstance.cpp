@@ -26,7 +26,7 @@ void USlashAnimInstance::NativeUpdateAnimation(float DeltaTimeRPM)
 	if (MovementComponent)
 	{
 		HorizontalSpeed = MovementComponent->Velocity.SizeSquared2D();
-		
 		bIsFalling = MovementComponent->IsFalling();
+		CharacterState = SlashCharacter->GetCharacterState();
 	}
 }

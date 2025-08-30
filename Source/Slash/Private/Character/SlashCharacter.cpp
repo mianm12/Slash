@@ -13,8 +13,6 @@
 #include "Items/Interfaces/Interactable.h"
 #include "Kismet/KismetSystemLibrary.h"
 
-
-
 // Sets default values
 ASlashCharacter::ASlashCharacter()
 {
@@ -200,6 +198,7 @@ void ASlashCharacter::Interact(const FInputActionValue& Value)
 		if (FocusedInteractable)
 		{
 			FocusedInteractable->Execute_Interact(FocusedInteractable.GetObject(), this);
+			CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
 		}
 	}
 }
