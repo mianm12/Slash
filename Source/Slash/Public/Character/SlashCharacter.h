@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Items/Interfaces/Interactor.h"
 #include "SlashCharacter.generated.h"
 
+class IInteractable;
 class UGroomComponent;
 class UCameraComponent;
 class USpringArmComponent;
@@ -15,7 +17,7 @@ class UInputMappingContext;
 struct FInputActionValue;
 
 UCLASS()
-class SLASH_API ASlashCharacter : public ACharacter
+class SLASH_API ASlashCharacter : public ACharacter, public IInteractor
 {
 	GENERATED_BODY()
 
@@ -44,11 +46,17 @@ public:
 	// Move action handlers
 	UFUNCTION(BlueprintCallable, Category="Input")
 	void Move(const FInputActionValue& Value);
+
+	// Equip action handlers
+	UFUNCTION(BlueprintCallable, Category="Input")
+	void Interact(const FInputActionValue& Value);
+	
+	FORCEINLINE virtual TScriptInterface<IInteractable> GetFocusedInteractable() const override { return FocusedInteractable; };
 	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	TObjectPtr<UInputMappingContext> DefaultMappingContext;
 
@@ -60,6 +68,17 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	TObjectPtr<UInputAction> MoveAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	TObjectPtr<UInputAction> InteractAction;
+
+	void CheckForInteractable();
+
+	UPROPERTY(EditAnywhere, Category="Interaction")
+	float InteractionDistance = 200.f;
+	
+	UPROPERTY(EditAnywhere, Category="Interaction")
+	float InteractionSphereRadius = 30.f;
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta=(AllowPrivateAccess = "true"))
@@ -74,4 +93,7 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Hair", meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<UGroomComponent> Eyebrows = nullptr;
 
+	// Currently focused interactable object
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
+	TScriptInterface<IInteractable> FocusedInteractable;
 };

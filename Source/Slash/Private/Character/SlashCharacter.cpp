@@ -10,6 +10,10 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Items/Interfaces/Interactable.h"
+#include "Kismet/KismetSystemLibrary.h"
+
+
 
 // Sets default values
 ASlashCharacter::ASlashCharacter()
@@ -37,7 +41,7 @@ ASlashCharacter::ASlashCharacter()
 	
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetRootComponent());
-	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance
+	CameraBoom->TargetArmLength = 250.0f; // The camera follows at this distance
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -58,6 +62,55 @@ void ASlashCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void ASlashCharacter::CheckForInteractable()
+{
+	// Use the actor location and forward vector to make the interaction more forgiving
+	FVector Start = GetActorLocation();
+	FVector End = Start + (GetActorForwardVector() * InteractionDistance);
+	// FVector Start = FollowCamera->GetComponentLocation();
+	// FVector End = Start + (FollowCamera->GetForwardVector() * InteractionDistance);
+	FHitResult HitResult;
+	
+	bool bHit = UKismetSystemLibrary::SphereTraceSingle(
+		this,
+		Start,
+		End,
+		InteractionSphereRadius,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility),
+		false,
+		TArray<AActor*>(),
+		EDrawDebugTrace::ForDuration,
+		HitResult,
+		true
+	);
+
+	AActor* HitActor = HitResult.GetActor();
+	TScriptInterface<IInteractable> HitInteractable = TScriptInterface<IInteractable>(HitActor);
+	
+	if (bHit && HitInteractable)
+	{// we are focusing on interactable
+		UE_LOG(LogTemp, Log, TEXT("ASlashCharacter::CheckForInteractable: Hit %s"), *HitActor->GetName());
+		if (FocusedInteractable != HitInteractable)
+		{// New interactable focused
+			if (FocusedInteractable)
+			{// End focus on previous interactable
+				FocusedInteractable->Execute_EndFocus(FocusedInteractable.GetObject());
+			}
+			FocusedInteractable = HitInteractable;
+			FocusedInteractable->Execute_BeginFocus(FocusedInteractable.GetObject());
+		}
+	}
+	else
+	{// no interactable in focus
+		UE_LOG(LogTemp, Log, TEXT("ASlashCharacter::CheckForInteractable: No interactable in focus"));
+		if (FocusedInteractable)
+		{// End focus on previous interactable
+			FocusedInteractable->Execute_EndFocus(FocusedInteractable.GetObject());
+			FocusedInteractable = nullptr;
+		}
+	}
 }
 
 // Called every frame
@@ -86,6 +139,7 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ASlashCharacter::JumpEnd);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASlashCharacter::Look);
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ASlashCharacter::Move);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ASlashCharacter::Interact);
 	}
 
 }
@@ -134,6 +188,19 @@ void ASlashCharacter::Move(const FInputActionValue& Value)
 		// add movement 
 		AddMovementInput(ForwardDirection, Forward);
 		AddMovementInput(RightDirection, Right);
+	}
+}
+
+void ASlashCharacter::Interact(const FInputActionValue& Value)
+{
+	if (GetController() != nullptr)
+	{
+		UE_LOG(LogTemp, Log, TEXT("ASlashCharacter::Interact"));
+		CheckForInteractable();
+		if (FocusedInteractable)
+		{
+			FocusedInteractable->Execute_Interact(FocusedInteractable.GetObject(), this);
+		}
 	}
 }
 
